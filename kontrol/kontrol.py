@@ -55,6 +55,16 @@ def oku(yol):
         return ham.decode("utf-16", errors="replace")
     return ham.decode("utf-8-sig", errors="replace")
 
+def sql_kodu(metin):
+    """SQL metninden yorumlari atar.
+
+    Sablon dosyalarinin KENDI yorumlarinda "CREATE TABLE komutunuzu yazin"
+    gibi ifadeler gectigi icin, ham metinde anahtar kelime aramak bos teslimi
+    gecerli sayiyordu. Denetimler bu fonksiyonun ciktisi uzerinde yapilir.
+    """
+    metin = re.sub(r"/\*.*?\*/", " ", metin or "", flags=re.S)
+    return re.sub("--.*", " ", metin)
+
 
 def baglanti():
     return psycopg.connect(
@@ -105,7 +115,7 @@ def kontrol_g1(con, kredi):
     sql = oku("sql/g1_transfer.sql")
     puan = 0
     mesajlar = []
-    if not sql or "UPDATE" not in sql.upper():
+    if not sql or "UPDATE" not in sql_kodu(sql).upper():
         kaydet("Görev 1 (Atomicity)", 0, 20,
                "sql/g1_transfer.sql bulunamadı veya UPDATE içermiyor.")
         return
