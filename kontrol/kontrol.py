@@ -117,6 +117,34 @@ def sayi_var(metin, deger):
 
 
 # ------------------------------------------------------------- Görev 1
+def transfer_calistir(con, sql):
+    """Dosyadaki BEGIN...COMMIT bloklarini AYRI AYRI calistirir.
+
+    Foy, Gorev 1'in 2. adiminda bilerek BASARISIZ olan bir transfer
+    denemesi yaptiriyor (bakiyeden fazlasini aktarma). Ogrencilerin bir
+    kismi bu denemeyi de ayni dosyaya yaziyor; dosyayi tek parca
+    calistirinca CHECK kisiti patliyor ve DOGRU transfer de
+    puanlanmiyordu. Bloklari tek tek calistirip hatali olani yutuyoruz:
+    basarisiz blok zaten geri alinir, basarili olan uygulanir.
+
+    Geriye yalnizca HIC blok uygulanamadiysa hata metni doner.
+    """
+    bloklar = re.findall(r"\bBEGIN\b.*?\bCOMMIT\b\s*;", sql,
+                         re.IGNORECASE | re.S) or [sql]
+    basarili, son_hata = False, None
+    for blok in bloklar:
+        try:
+            con.execute(blok)
+            basarili = True
+        except Exception as e:
+            son_hata = str(e).splitlines()[0]
+            try:
+                con.execute("ROLLBACK")
+            except Exception:
+                pass
+    return None if basarili else son_hata
+
+
 def kontrol_g1(con, kredi):
     sql = oku("sql/g1_transfer.sql")
     puan = 0
@@ -132,18 +160,20 @@ def kontrol_g1(con, kredi):
     else:
         mesajlar.append("Transfer bir BEGIN ... COMMIT bloğu içinde değil.")
 
+    hata = transfer_calistir(con, sql)
     try:
-        con.execute(sql)
         b1 = con.execute("SELECT kredi FROM krediler WHERE uye_id = 1").fetchone()[0]
         b2 = con.execute("SELECT kredi FROM krediler WHERE uye_id = 2").fetchone()[0]
         if b1 == kredi[1] - TRANSFER_MIKTAR and b2 == kredi[2] + TRANSFER_MIKTAR:
             puan += 12
             mesajlar.append("Transfer bakiyeleri doğru.")
+        elif hata:
+            mesajlar.append(f"Transfer çalıştırılamadı: {hata}")
         else:
             mesajlar.append("Transfer sonrası bakiyeler beklenenden farklı "
                             "(üye 1'den üye 2'ye tam 50 kredi geçmeli).")
     except Exception as e:
-        mesajlar.append(f"Transfer çalıştırılamadı: {str(e).splitlines()[0]}")
+        mesajlar.append(f"Bakiyeler okunamadı: {str(e).splitlines()[0]}")
 
     icerik = oku("sonuc/g1.txt") or ""
     if re.search(r"violates check|check constraint|ihlal", icerik, re.IGNORECASE):
