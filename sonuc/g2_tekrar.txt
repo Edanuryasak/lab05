@@ -1,0 +1,42 @@
+GÖREV 2B - TEKRARLANMAYAN OKUMA TESTİ
+
+1. READ COMMITTED
+
+-- B:
+BEGIN;
+SELECT uye_id, kredi FROM krediler WHERE uye_id = 7;
+-- İlk okuma: 218
+
+-- A:
+UPDATE krediler SET kredi = kredi + 30 WHERE uye_id = 7;
+-- UPDATE 1
+
+-- B:
+SELECT uye_id, kredi FROM krediler WHERE uye_id = 7;
+-- İkinci okuma: 248
+COMMIT;
+
+SONUÇ:
+READ COMMITTED seviyesinde aynı transaction içinde yapılan ikinci okumada
+başka oturumun commit edilmiş değişikliği görüldü.
+
+2. REPEATABLE READ
+
+-- B:
+BEGIN ISOLATION LEVEL REPEATABLE READ;
+SELECT uye_id, kredi FROM krediler WHERE uye_id = 7;
+-- İlk okuma: 248
+
+-- A:
+UPDATE krediler SET kredi = kredi + 30 WHERE uye_id = 7;
+-- UPDATE 1
+
+-- B:
+SELECT uye_id, kredi FROM krediler WHERE uye_id = 7;
+-- İkinci okuma: 248
+COMMIT;
+
+SONUÇ:
+REPEATABLE READ seviyesinde transaction boyunca aynı satırın ilk okunan
+değeri korundu. Diğer oturumun commit edilmiş değişikliği ikinci okumaya
+yansımadı.

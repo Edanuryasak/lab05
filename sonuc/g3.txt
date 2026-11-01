@@ -1,0 +1,46 @@
+GÖREV 3 - KAYIP GÜNCELLEME (LOST UPDATE)
+
+1. Kayıp güncelleme deneyi
+
+-- A:
+SELECT kredi FROM krediler WHERE uye_id = 5;
+-- Okunan bakiye: 734
+
+-- B:
+SELECT kredi FROM krediler WHERE uye_id = 5;
+-- Okunan bakiye: 734
+
+-- A:
+UPDATE krediler SET kredi = 744 WHERE uye_id = 5;
+-- UPDATE 1
+
+-- B:
+UPDATE krediler SET kredi = 744 WHERE uye_id = 5;
+-- UPDATE 1
+
+-- Kontrol:
+SELECT kredi FROM krediler WHERE uye_id = 5;
+-- Son bakiye: 744
+
+SONUÇ:
+İki oturum da aynı eski değer olan 734 üzerinden hesaplama yaptı.
+Her iki oturumun 10 kredi artırma isteğine rağmen son bakiye 744 oldu.
+Güncellemelerden biri kayboldu.
+
+2. Atomik güncelleme ile çözüm
+
+-- A:
+UPDATE krediler SET kredi = kredi + 10 WHERE uye_id = 5;
+-- UPDATE 1
+
+-- B:
+UPDATE krediler SET kredi = kredi + 10 WHERE uye_id = 5;
+-- UPDATE 1
+
+-- Kontrol:
+SELECT kredi FROM krediler WHERE uye_id = 5;
+-- Son bakiye: 764
+
+SONUÇ:
+Artırma işlemi doğrudan veritabanında kredi = kredi + 10 şeklinde yapıldığında
+iki güncelleme de uygulandı. Böylece kayıp güncelleme önlendi.

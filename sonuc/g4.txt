@@ -1,0 +1,40 @@
+GÖREV 4 - KALICILIK VE YAPILANDIRMA
+
+1. Kalıcılık testi
+
+-- Başlangıç bakiyesi:
+SELECT kredi FROM krediler WHERE uye_id = 9;
+-- 896
+
+-- Güncelleme:
+UPDATE krediler SET kredi = kredi + 40 WHERE uye_id = 9;
+-- UPDATE 1
+
+-- Güncel bakiye:
+SELECT kredi FROM krediler WHERE uye_id = 9;
+-- 936
+
+2. PostgreSQL yeniden başlatma testi
+
+-- Terminal:
+docker compose restart postgres
+
+-- Yeniden bağlandıktan sonra:
+SELECT kredi FROM krediler WHERE uye_id = 9;
+-- 936
+
+SONUÇ:
+PostgreSQL yeniden başlatıldıktan sonra da güncellenen bakiye 936 olarak
+korundu. İşlemin kalıcı olduğu doğrulandı.
+
+3. shared_buffers ayarı
+
+SHOW shared_buffers;
+-- 128MB
+
+4. Aktif bağlantılar
+
+SELECT pid, state, query FROM pg_stat_activity;
+-- 6 satır görüntülendi.
+-- Sorgu çalıştırılırken bir bağlantı active durumundaydı.
+-- Diğer bağlantıların state ve query alanları boştu.

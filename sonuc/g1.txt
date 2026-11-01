@@ -1,0 +1,36 @@
+GOREV 1 - BASARISIZ TRANSFER DENEMESI
+
+Komut:
+BEGIN;
+
+UPDATE krediler
+SET kredi = kredi - 99999
+WHERE uye_id = 1;
+
+UPDATE krediler
+SET kredi = kredi + 99999
+WHERE uye_id = 2;
+
+COMMIT;
+
+PostgreSQL ciktisi:
+
+BEGIN
+
+ERROR: new row for relation "krediler" violates check constraint "krediler_kredi_check"
+
+DETAIL: Failing row contains (1, -99768).
+
+ERROR: current transaction is aborted, commands ignored until end of transaction block
+
+ROLLBACK
+
+Basarisiz islem sonrasi bakiye kontrolu:
+
+uye_id | kredi
+-------+------
+1      | 231
+2      | 798
+
+Degerlendirme:
+Uye 1'in bakiyesi yetersiz oldugu icin CHECK kisiti islemi engelledi. Transaction basarisiz oldu ve ROLLBACK ile geri alindi. Uye 2'nin bakiyesi de degismedi.

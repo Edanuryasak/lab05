@@ -1,0 +1,28 @@
+GÖREV 2A - KİRLİ OKUMA TESTİ
+
+-- A:
+BEGIN;
+UPDATE krediler SET kredi = kredi + 77 WHERE uye_id = 3;
+-- UPDATE 1
+
+SELECT uye_id, kredi FROM krediler WHERE uye_id = 3;
+-- A oturumu kendi değişikliğini gördü: 276
+
+-- B:
+BEGIN ISOLATION LEVEL READ UNCOMMITTED;
+
+SELECT uye_id, kredi FROM krediler WHERE uye_id = 3;
+-- B oturumu commit edilmemiş değişikliği göremedi: 199
+
+-- A:
+ROLLBACK;
+
+-- B:
+ROLLBACK;
+
+SELECT uye_id, kredi FROM krediler WHERE uye_id = 3;
+-- Son bakiye: 199
+
+SONUÇ:
+PostgreSQL'de READ UNCOMMITTED seviyesinde bile kirli okuma gerçekleşmedi.
+B oturumu, A oturumunun commit edilmemiş değişikliğini göremedi.
